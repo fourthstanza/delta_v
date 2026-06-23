@@ -1,5 +1,4 @@
 #include "bno055.h"
-#include "driver/i2c_master.h"
 
 static const char *TAG = "BNO055";
 
@@ -216,7 +215,7 @@ esp_err_t bno055_init(i2c_master_dev_handle_t dev_handle, uint8_t orientation)
 esp_err_t bno055_get_accel(i2c_master_dev_handle_t dev_handle, int16_t *ax, int16_t *ay, int16_t *az)
 {
     uint8_t buffer[6];
-    ESP_ERROR_CHECK(bno055_read_registers(dev_handle, ACC_DATA_ADDR_START, buffer, 6)); // Read accelerometer data
+    bno055_read_registers(dev_handle, ACC_DATA_ADDR_START, buffer, 6); // Read accelerometer data
     *ax = (buffer[1] << 8) | buffer[0];
     *ay = (buffer[3] << 8) | buffer[2];
     *az = (buffer[5] << 8) | buffer[4];
