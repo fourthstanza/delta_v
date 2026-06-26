@@ -13,3 +13,9 @@
 
 #define SensorPollPriority          tskIDLE_PRIORITY + 2
 #define LogPriority                 tskIDLE_PRIORITY + 1
+#define IOPriority                  tskIDLE_PRIORITY
+
+typedef struct {
+    adc_oneshot_unit_handle_t adc_handle;
+    i2c_master_dev_handle_t bno_handle;
+} sensor_ctx_t;

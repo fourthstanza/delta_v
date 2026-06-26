@@ -10,14 +10,15 @@ static const char *TAG = "main";
 
 void sensorPollTask(void *pvParameters)
 {
-    i2c_master_dev_handle_t bno_handle = (i2c_master_dev_handle_t)pvParameters;
-    adc_oneshot_unit_handle_t adc_handle = (adc_oneshot_unit_handle_t)pvParameters;
+    sensor_ctx_t *ctx = (sensor_ctx_t *)pvParameters;
+    i2c_master_dev_handle_t bno_handle = ctx -> bno_handle;     // MAKES COPIES OF HANDLERS ATM
+    adc_oneshot_unit_handle_t adc_handle = ctx -> adc_handle;
     
     while (1) {
         static int16_t ax, ay, az;
         static int16_t gx, gy, gz;
         static int16_t mx, my, mz;
-        static int voltage[1];
+        static int voltage[1] = {0};
 
         esp_err_t accel_err;
         esp_err_t gyro_err;
@@ -26,9 +27,10 @@ void sensorPollTask(void *pvParameters)
         accel_err = bno055_get_accel(bno_handle, &ax, &ay, &az);
         gyro_err = bno055_get_gyro(bno_handle, &gx, &gy, &gz);
         mag_err = bno055_get_mag(bno_handle, &mx, &my, &mz);
-
         lipo_get_voltage(adc_handle, voltage);
 
+        /*Package all values and notify log task w/ timestamp*/
+        /*Err? Send to log task w/ timestamp*/
 
         ESP_LOGI(TAG, "Accel: ax=%d, ay=%d, az=%d\nGyro: gx=%d, gy=%d, gz=%d\nMag: mx=%d, my=%d, mz=%d, voltage=%d", ax, ay, az, gx, gy, gz, mx, my, mz, voltage[0]);
         vTaskDelay(pdMS_TO_TICKS(20));
@@ -38,6 +40,16 @@ void sensorPollTask(void *pvParameters)
 //void logTask(void *pvParameters)
 //{
     
+//}
+
+//void beepTask(void *pvParameters)
+//{
+
+//}
+
+//void ledTask(void *pvParameters)
+//{
+
 //}
 
 esp_err_t i2c_bus_init(i2c_master_bus_handle_t *handle) {
@@ -54,11 +66,13 @@ esp_err_t i2c_bus_init(i2c_master_bus_handle_t *handle) {
 
 void app_main(void)
 {
+    //xTaskCreate(beepTask)
     beeper_init(BEEPER_IO);
-
-    adc_oneshot_unit_handle_t adc_handle;
-    lipo_meas_init(LIPO_IO, &adc_handle);
-    i2c_master_bus_handle_t bus_handle;
+    led_init(LED_IO);
+    led_boot(LED_IO);
+    adc_oneshot_unit_handle_t adc_handle = NULL;
+    lipo_meas_init(&adc_handle);
+    i2c_master_bus_handle_t bus_handle = NULL;
     esp_err_t i2c_bus_err = i2c_bus_init(&bus_handle);
     i2c_master_dev_handle_t bno_handle;
     bno055_i2c_init(&bus_handle, &bno_handle);
@@ -69,15 +83,20 @@ void app_main(void)
 
     ESP_ERROR_CHECK(bno055_init(bno_handle, ORIENT_XYZ));
 
-    //mg90s_init(27, 1);
+    sensor_ctx_t sensor_ctx = {
+        .adc_handle     = adc_handle,
+        .bno_handle     = bno_handle
+    };
 
-    xTaskCreate(sensorPollTask,"sensor_read_task", 4096, bno_handle, tskIDLE_PRIORITY + 2, NULL);
-    //xTaskCreate(logTask,"log_task", 4096, NULL, tskIDLE_PRIORITY + 1, NULL);
+    xTaskCreate(sensorPollTask,"sensor_read_task", 8192, &sensor_ctx, SensorPollPriority, NULL);
+    //xTaskCreate(logTask,"log_task", 4096, NULL, LogPriority, NULL);
 
     beeper_av_initialized();
+    led_av_initialized(LED_IO);
 
     while (1) {
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(2000));
+        led_blink(LED_IO, 80);
         //beeper_recovery();
     }
 }
