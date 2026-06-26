@@ -11,7 +11,7 @@ void beeper_beep(uint16_t note, uint16_t duration)
     beeper_set_freq(note);
     ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, LEDC_DUTY_SQUARE);
     ledc_update_duty(LEDC_MODE, LEDC_CHANNEL);
-    vTaskDelay(duration);
+    vTaskDelay(pdMS_TO_TICKS(duration));
     ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, 0);
     ledc_update_duty(LEDC_MODE, LEDC_CHANNEL);
 }
@@ -45,28 +45,28 @@ void beeper_init(uint8_t gpio)
         .duty               = 0,
     };
     ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel));
-    beeper_beep(NOTE_D5, 10);
-    vTaskDelay(10);
-    beeper_beep(NOTE_D5, 10);
+    beeper_beep(NOTE_D5, 100);
+    vTaskDelay(pdMS_TO_TICKS(100));
+    beeper_beep(NOTE_D5, 100);
 }
 
 void beeper_av_initialized()
 {
     //Fmaj13\D
-    beeper_beep(NOTE_D5, 10);
-    beeper_beep(NOTE_E5, 10);
-    beeper_beep(NOTE_F5, 10);
-    beeper_beep(NOTE_A5, 10);
+    beeper_beep(NOTE_D5, 100);
+    beeper_beep(NOTE_E5, 100);
+    beeper_beep(NOTE_F5, 100);
+    beeper_beep(NOTE_A5, 100);
 }
 
 void beeper_armed()
 {
     //EAS tones
-    beeper_beep(NOTE_C5, 100);
-    beeper_beep(NOTE_D5, 30);
-    beeper_beep(NOTE_E5, 30);
-    beeper_beep(NOTE_D5, 30);
-    beeper_beep(NOTE_E5, 30);
+    beeper_beep(NOTE_C5, 1000);
+    beeper_beep(NOTE_D5, 300);
+    beeper_beep(NOTE_E5, 300);
+    beeper_beep(NOTE_D5, 300);
+    beeper_beep(NOTE_E5, 300);
 }
 
 void beeper_recovery()
