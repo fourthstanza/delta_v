@@ -4,6 +4,8 @@
 
 static const char *TAG = "main";
 
+QueueHandle_t sensor_queue = NULL;
+
 //void commWithSensor(void){
 
 //}
@@ -42,15 +44,60 @@ void sensorPollTask(void *pvParameters)
     
 //}
 
-//void beepTask(void *pvParameters)
-//{
+//use task notifications to trigger beeper
+void beepTask(void *pvParameters)
+{
+    beeper_init(BEEPER_IO);
+    uint32_t ulNotifiedValue;
 
-//}
+    while(1) {
+        xTaskNotifyWait(
+                            0x00,
+                            ULONG_MAX,
+                            &ulNotifiedValue,
+                            portMAX_DELAY );
 
-//void ledTask(void *pvParameters)
-//{
+        if( ( ulNotifiedValue & BEEPER_AV_INITIALIZED ) != 0 )
+        {
+            beeper_av_initialized();
+        }
+        if( ( ulNotifiedValue & BEEPER_RECOVERY ) != 0 )
+        {
+            //tbd
+        }
+    }
+}
 
-//}
+//use task notifications to trigger led
+void ledTask(void *pvParameters)
+{
+    led_init(LED_IO);
+    uint32_t ulNotifiedValue;
+
+    while(1) {
+        xTaskNotifyWait(
+                            0x00,
+                            ULONG_MAX,
+                            &ulNotifiedValue,
+                            portMAX_DELAY );
+
+        if( ( ulNotifiedValue & LED_BOOT ) != 0 )
+        {
+            led_init(LED_IO);
+        }
+        if( ( ulNotifiedValue & LED_AV_INIT ) != 0 )
+        {
+            led_av_initialized(LED_IO);
+        }
+        if( (ulNotifiedValue & LED_BLINK ) != 0) {
+            led_blink(LED_IO, 80);
+        }
+        if( ( ulNotifiedValue & LED_RECOVERY ) != 0 )
+        {
+            //tbd
+        }
+    }
+}
 
 esp_err_t i2c_bus_init(i2c_master_bus_handle_t *handle) {
     i2c_master_bus_config_t bus_config = {
@@ -66,10 +113,10 @@ esp_err_t i2c_bus_init(i2c_master_bus_handle_t *handle) {
 
 void app_main(void)
 {
-    //xTaskCreate(beepTask)
-    beeper_init(BEEPER_IO);
-    led_init(LED_IO);
-    led_boot(LED_IO);
+    TaskHandle_t led_task_handle;
+    TaskHandle_t beeper_task_handle;
+    xTaskCreate(beepTask, "beeper_task", 2048, NULL, IOPriority, &beeper_task_handle);
+    xTaskCreate(ledTask, "led_task", 2048, NULL, IOPriority, &led_task_handle);
     adc_oneshot_unit_handle_t adc_handle = NULL;
     lipo_meas_init(&adc_handle);
     i2c_master_bus_handle_t bus_handle = NULL;
@@ -91,12 +138,12 @@ void app_main(void)
     xTaskCreate(sensorPollTask,"sensor_read_task", 8192, &sensor_ctx, SensorPollPriority, NULL);
     //xTaskCreate(logTask,"log_task", 4096, NULL, LogPriority, NULL);
 
-    beeper_av_initialized();
-    led_av_initialized(LED_IO);
+    xTaskNotify(beeper_task_handle, BEEPER_AV_INITIALIZED, eSetBits);
+    xTaskNotify(led_task_handle, LED_AV_INIT, eSetBits);
 
     while (1) {
         vTaskDelay(pdMS_TO_TICKS(2000));
-        led_blink(LED_IO, 80);
+        xTaskNotify(led_task_handle, LED_BLINK, eSetBits);
         //beeper_recovery();
     }
 }

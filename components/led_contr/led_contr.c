@@ -11,6 +11,7 @@ void led_init(int gpio){
     };
     gpio_config(&gpio_cfg);
     gpio_set_level(gpio, 0);
+    led_boot(gpio);
 }
 
 void led_blink(int gpio, int ms)
