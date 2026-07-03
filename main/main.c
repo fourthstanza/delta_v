@@ -38,13 +38,12 @@ void sensorPollTask(void *pvParameters)
         vTaskDelay(pdMS_TO_TICKS(20));
     }
 }
-
+ 
 //void logTask(void *pvParameters)
 //{
     
 //}
 
-//use task notifications to trigger beeper
 void beepTask(void *pvParameters)
 {
     beeper_init(BEEPER_IO);
@@ -68,7 +67,6 @@ void beepTask(void *pvParameters)
     }
 }
 
-//use task notifications to trigger led
 void ledTask(void *pvParameters)
 {
     led_init(LED_IO);
@@ -123,10 +121,11 @@ void app_main(void)
     esp_err_t i2c_bus_err = i2c_bus_init(&bus_handle);
     i2c_master_dev_handle_t bno_handle;
     bno055_i2c_init(&bus_handle, &bno_handle);
-    esp_err_t bno_err = bno055_who_am_i(bno_handle);
-    ESP_LOGI(TAG, "I2C initialized successfully");
 
     vTaskDelay(pdMS_TO_TICKS(700)); // bno055Power-Off Reset time is 650ms
+
+    esp_err_t bno_err = bno055_who_am_i(bno_handle);
+    ESP_LOGI(TAG, "I2C initialized successfully");
 
     ESP_ERROR_CHECK(bno055_init(bno_handle, ORIENT_XYZ));
 
