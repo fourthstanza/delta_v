@@ -6,6 +6,11 @@
 /**
  * @brief
  */
+typedef void *adc_t;
+
+/**
+ * @brief
+ */
 typedef enum {
     ADC_0,
     ADC_1,
@@ -56,13 +61,6 @@ typedef enum {
     ADC_BIT_7,
     ADC_BIT_10
 } adc_bit_t;
-
-/**
- * @brief
- */
-typedef struct {
-    void *handle;
-} adc_t;
 
 /**
  * @brief
