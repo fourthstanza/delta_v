@@ -66,4 +66,3 @@ esp_err_t bmp_280_init(i2c_master_dev_handle_t dev_handle)
     
     return(err);
 }
-
