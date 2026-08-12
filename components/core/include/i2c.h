@@ -9,9 +9,9 @@
  */
 typedef struct
 {
-    uint8_t port;
-    uint8_t sda;
-    uint8_t scl;
+    uint8_t port;   // use -1 for auto-selecting
+    int8_t sda;     // use -1 for NC
+    int8_t scl;     // use -1 for NC
     bool pullups;
 } i2c_bus_config_t;
 
@@ -44,7 +44,7 @@ typedef struct
 /**
  * @brief 
  */
-err_t i2c_bus_init(const i2c_bus_config_t *cfg, i2c_bus_t *bus);
+err_t i2c_bus_init(const i2c_bus_config_t *cfg, i2c_bus_t *bus, i2c_dev_config_t *dev_config);
 
 /**
  * @brief 
