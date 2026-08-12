@@ -41,24 +41,24 @@ typedef enum {
  * @brief
  */
 typedef enum {
-    ADC_CHANNEL_0,     
-    ADC_CHANNEL_1,     
-    ADC_CHANNEL_2,     
-    ADC_CHANNEL_3,     
-    ADC_CHANNEL_4,     
-    ADC_CHANNEL_5,     
-    ADC_CHANNEL_6,     
-    ADC_CHANNEL_7,     
-    ADC_CHANNEL_8,     
-    ADC_CHANNEL_9,     
-    ADC_CHANNEL_10,    
+    ADC_CHAN_0,
+    ADC_CHAN_1,
+    ADC_CHAN_2,
+    ADC_CHAN_3,
+    ADC_CHAN_4,
+    ADC_CHAN_5,
+    ADC_CHAN_6,
+    ADC_CHAN_7,
+    ADC_CHAN_8,
+    ADC_CHAN_9,
+    ADC_CHAN_10,
 } adc_chan_t;
 
 /**
  * @brief
  */
 typedef enum {
-    ADC_BIT_7,
+    ADC_BIT_9,
     ADC_BIT_10
 } adc_bit_t;
 
