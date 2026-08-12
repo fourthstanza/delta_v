@@ -18,10 +18,29 @@ static err_t i2c_parse_error(esp_err_t err) {
 }
 
 err_t i2c_bus_init(i2c_bus_t *handle, i2c_config_t bus_config) {
+
+    gpio_num_t sda = (gpio_num_t) bus_config->sda;
+    switch (sda) {
+        case (-1 < sda < 40):
+            break;
+        default:
+            ESP_LOGE(TAG, "Invalid sda pin assignment, must be between 0 and 40 or -1 for NC")
+            return(ERR_INVALID_ARG);
+    }
+
+    gpio_num_t scl = (gpio_num_t) bus_config->scl;
+    switch (scl) {
+        case (-1 < scl < 40):
+            break;
+        default:
+            ESP_LOGE(TAG, "Invalid scl pin assignment, must be between 0 and 40 or -1 for NC")
+            return(ERR_INVALID_ARG);
+    }
+
     i2c_master_bus_config_t bus_config = {
         .i2c_port = bus_config->port,
-        .sda_io_num = bus_config->sda,
-        .scl_io_num = bus_config->scl,
+        .sda_io_num = sda,
+        .scl_io_num = scl,
         .clk_source = I2C_CLK_SRC_DEFAULT,
         .flags.enable_internal_pullup = bus_config->pullups,
     };
