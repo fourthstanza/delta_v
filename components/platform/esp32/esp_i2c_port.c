@@ -17,59 +17,61 @@ static err_t i2c_parse_error(esp_err_t err) {
     }
 }
 
-err_t i2c_bus_init(i2c_bus_t *handle, i2c_config_t bus_config) {
+err_t i2c_bus_init(i2c_bus_t *bus_handle, i2c_bus_config_t bus_config) {
 
-    gpio_num_t sda = (gpio_num_t) bus_config->sda;
-    switch (sda) {
-        case (-1 < sda < 40):
-            break;
-        default:
-            ESP_LOGE(TAG, "Invalid sda pin assignment, must be between 0 and 40 or -1 for NC")
-            return(ERR_INVALID_ARG);
+    gpio_num_t sda = (gpio_num_t) bus_config.sda;
+    if (sda < GPIO_NUM_NC || sda > GPIO_NUM_MAX){
+        ESP_LOGE(TAG, "Invalid sda pin assignment: %d, must be between %d and %d or %d for NC", bus_config.sda, GPIO_NUM_0, GPIO_NUM_MAX - 1, GPIO_NUM_NC);
+        return(ERR_INVALID_ARG);
     }
 
-    gpio_num_t scl = (gpio_num_t) bus_config->scl;
-    switch (scl) {
-        case (-1 < scl < 40):
-            break;
-        default:
-            ESP_LOGE(TAG, "Invalid scl pin assignment, must be between 0 and 40 or -1 for NC")
-            return(ERR_INVALID_ARG);
+    gpio_num_t scl = (gpio_num_t) bus_config.scl;
+    if (scl < GPIO_NUM_NC || scl > GPIO_NUM_MAX){
+        ESP_LOGE(TAG, "Invalid scl pin assignment: %d, must be between %d and %d or %d for NC", bus_config.scl, GPIO_NUM_0, GPIO_NUM_MAX - 1, GPIO_NUM_NC);
+        return(ERR_INVALID_ARG);
     }
 
-    i2c_master_bus_config_t bus_config = {
-        .i2c_port = bus_config->port,
+    i2c_master_bus_config_t esp_bus_config = {
+        .i2c_port = bus_config.port,
         .sda_io_num = sda,
         .scl_io_num = scl,
         .clk_source = I2C_CLK_SRC_DEFAULT,
-        .flags.enable_internal_pullup = bus_config->pullups,
+        .flags.enable_internal_pullup = bus_config.pullups,
     };
-    i2c_master_bus_handle esp_handle = NULL;
-    esp_err_t err = i2c_new_master_bus(&bus_config, esp_handle);
+    i2c_master_bus_handle_t esp_handle = NULL;
+    esp_err_t err = i2c_new_master_bus(&esp_bus_config, &esp_handle);
     if (err == ESP_OK){
-        handle = esp_handle;
+        *bus_handle = (i2c_bus_t)esp_handle;
     }
     return(i2c_parse_error(err));
 }
 
-err_t i2c_bus_add_device(i2c_bus_t *bus, i2c_dev_t *dev, i2c_dev_config_t *dev_config)
+err_t i2c_bus_add_device(i2c_bus_t bus, i2c_dev_t *dev_handle, i2c_dev_config_t dev_config)
 {
     i2c_addr_bit_len_t bit_len;
-    if (dev_config->addr_bit_length == 10)
-    {
-        bit_len = I2C_ADDR_BIT_LEN_10;
-    }
-    else
-    {
-        bit_len = I2C_ADDR_BIT_LEN_7;
+    switch (dev_config.addr_bit_length) {
+        case (I2C_BIT_LEN_7):
+            bit_len = I2C_ADDR_BIT_LEN_7;
+            break;
+        case (I2C_BIT_LEN_10):
+            bit_len = I2C_ADDR_BIT_LEN_10;
+            break;
+        default:
+            return ERR_INVALID_ARG;
     }
 
     i2c_device_config_t esp_dev_config = {
         .dev_addr_length = bit_len,
-        .device_address = dev_config->device_address,
-        .scl_speed_hz = dev_config->scl_speed_hz
+        .device_address = dev_config.device_address,
+        .scl_speed_hz = dev_config.scl_speed_hz
     };
-    esp_err_t err = i2c_master_bus_add_device(*bus, &dev_config, dev);
+
+    i2c_master_dev_handle_t esp_handle;
+    esp_err_t err = i2c_master_bus_add_device(bus, &esp_dev_config, esp_handle);
+    
+    if (err == ESP_OK){
+        *dev_handle = (i2c_dev_t)esp_handle;
+    }
     return(i2c_parse_error(err));
 }
 
