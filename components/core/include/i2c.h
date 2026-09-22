@@ -5,11 +5,19 @@
 #include "err.h"
 
 /**
+ * @brief
+ */
+typedef enum i2c_bit_len_t {
+    I2C_BIT_LEN_7,
+    I2C_BIT_LEN_10
+}
+
+/**
  * @brief 
  */
 typedef struct
 {
-    uint8_t port;   // use -1 for auto-selecting
+    int8_t port;   // use -1 for auto-selecting
     int8_t sda;     // use -1 for NC
     int8_t scl;     // use -1 for NC
     bool pullups;
@@ -18,17 +26,14 @@ typedef struct
 /**
  * @brief 
  */
-typedef struct
-{
-    void *handle;
-} i2c_bus_t;
+typedef void *i2c_bus_t;
 
 /**
  * @brief 
  */
 typedef struct
 {
-    uint8_t addr_bit_length;
+    i2c_bit_len_t addr_bit_length;
     uint16_t device_address;
     uint32_t scl_speed_hz;
 } i2c_dev_config_t;
@@ -36,10 +41,7 @@ typedef struct
 /**
  * @brief 
  */
-typedef struct
-{
-    void *handle;
-} i2c_dev_t;
+typedef void *i2c_dev_t;
 
 /**
  * @brief 
